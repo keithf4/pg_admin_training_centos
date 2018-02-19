@@ -1,0 +1,1096 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>PostgreSQL Administration</title>
+
+        <meta name="description" content="PostgreSQL Administration">
+        <meta name="author" content="Keith Fiske">
+
+		<link rel="stylesheet" href="css/reveal.css">
+        <!--        <link rel="stylesheet" href="css/theme/black.css"> -->
+        <link rel="stylesheet" href="css/theme/crunchy.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+        <style>
+            .reveal {
+              font-size: 30px;
+             }
+
+            #li30 li { line-height:30px }
+        </style>
+
+	</head>
+	<body>
+
+		<div class="reveal">
+			<div class="slides">
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <section data-background="css/theme/crunchy_white_bg.png">
+                        <h2>PostgreSQL Administration</h2>
+                        <p>
+                            Presented by <a href="http://keithf4.com" target="_blank">Keith Fiske</a> / <a href="http://twitter.com/keithf4" target="_blank">@keithf4</a>
+                        </p>
+                        <p>
+                        Senior Database Engineer @ <a href="https://www.crunchydata.com/" target="_blank">Crunchy Data Solutions</a><br/>
+                        (<a href="https://github.com/keithf4/pg_partman" target="_blank">pg_partman</a>, <a href="https://github.com/CrunchyData/pgmonitor" target="_blank">pg_monitor</a>, <a href="https://github.com/omniti-labs/pg_extractor" target="_blank">pg_extractor</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>)
+                        </p>
+                        <p>
+                        <br/>
+                        <br/>
+                        Follow along at <br/><a href="http://slides.keithf4.com/pg_admin_training_centos">http://slides.keithf4.com/pg_admin_training_centos</a>
+
+                        </p>
+                    </section>
+                    <section data-background="css/theme/crunchy_white_bg.png">
+                        <h2>VM Setup</h2>
+                        <ul>
+                            <li>Copy <b style="color:orange"><i>PG Training - CentOS7</i></b> folder OR <b style="color:orange"><i>PGTraining_VM.zip</i></b> from USB stick to your computer</li>
+                            <ul>
+                                <li>Extract zip if necessary</li>
+                            </ul>
+                            <li>Copy relevant VirtualBox installation file for your OS &amp; Install</li>
+                            <ul>
+                                <li><a href="https://www.virtualbox.org/wiki/Linux_Downloads" target="_blank">Linux install instructions</a></li>
+                            </ul>
+                            <li>Copy <b style="color:orange"><i>Oracle_VM_VirtualBox_Extension_Pack-5.2.6-120293.vbox-extpack</i></b> and Install by double-clicking</li>
+                            <li>Remove USB Stick</li>
+                            <li>Import Virtual Machine Image</li>
+                            <ul>
+                                <li><b>Machine -&gt; Add... -&gt;</b></li>
+                                <li>Browse to where you copied VM folder (DO NOT run off USB stick)</li>
+                                <li>Double-click <b style="color:orange"><i>PG Training - CentOS7.vbox</i></b></li>
+                            </ul>
+                            <li>Start up VM!</li>
+                        </ul>
+                    </section>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Crunchy Data Solutions, Inc</h2>
+                    <p>
+                        <ul>
+                            <li>Industry leader in providing enterprise PostgreSQL support and open source solutions</li>
+                            <li>Crunchy Certified PostgreSQL</li>
+                            <ul>
+                                <li>100% Open Source PostgreSQL</li> 
+                                <li>Common Criteria EAL 2+ Certified</li>
+                            </ul>
+                            <li>We're hiring!</li>
+                            <ul>
+                                <li><a href="https://www.crunchydata.com/" target="_blank">https://www.crunchydata.com/</a></li>
+                                <li>DBAs, Systems Engineers, Container Experts</li>
+                            </ul>
+                        </ul>
+                    </p>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>What is PostgreSQL?</h2>
+                    <ul>
+                        <li>Open Source RDBMS</li>
+                        <li>Started at UC Berkley 1986, open sourced in 1996</li>
+                        <li>BSD-type License</li>
+                        <li>Follows SQL Standard very closely</li>
+                        <li>Third-party Plugin Support</li>
+                        <ul>
+                            <li>Procedural Languages</li>
+                            <ul>
+                                <li>C, Java, Python, Perl, JavaScript, PHP, R, Ruby, etc</li>
+                                <li>Extensions</li>
+                                <li>Background Workers (&gt;=9.3)</li>
+                            </ul>
+                        </ul>
+                        <li>Massive online community (mailing lists, irc, conferences)</li>
+                    </ul>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Training VM</h2>
+                    <ul>
+                        <li>VirtualBox 5.2.6 + Extension Pack</li>
+                        <li>Login: training / postgres</li>
+                        <li><b><i>training</i></b> user has sudo</li>
+                        <ul>
+                            <li>All commads shown with "sudo" are run by training user</li>
+                        </ul>
+                        <li>Applications -&gt; System Tools -&gt; Terminal</li>
+                        <li>Internet should work within VM (if it works externally)</li>
+                        <li>Clipboard should work between host & VM</li>
+                        <li><b><i>vim</i></b> &amp; <b><i>nano</i></b> for CLI file editing. For GUI:</li>
+                        <pre><code data-trim>
+                            sudo gedit &amp;
+                        </code></pre>
+                            then close that terminal to avoid spam
+                        <li>Take snapshot now & as many times as you'd like along the way</li>
+                    </ul>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Installing PostgreSQL</h2>
+                    <ul>
+                        <li>Setup yum repo for your desired version</li>
+                        <ul>
+                            <li>Default for CentOS 7 is 9.2 which is EOL as of Sept 2017</li>
+                            <li><a href="http://www.postgresql.org/download/linux/redhat/" target="_blank">http://www.postgresql.org/download/linux/redhat/</a></li>
+                            <li>Select 10, CentOS7, x86_64</li>
+                        </ul>
+                        <pre><code data-trim>
+                            sudo yum install https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-1.noarch.rpm
+                        </code></pre>
+                        <li>Install PostgreSQL 10.x &amp; Contrib modules</li>
+                            <pre><code data-trim>
+                                sudo yum install postgresql10-server postgresql10-contrib</pre>
+                            </code></pre>
+                        <li>No clusters automatically created and no initial automatic startup (Redhat policy)</li>
+                        <pre><code data-trim>
+                            sudo /usr/pgsql-10/bin/postgresql-10-setup initdb
+                            sudo systemctl enable postgresql-10
+                            sudo systemctl start postgresql-10
+                            systemctl status postgresql-10
+                        </code></pre>
+                        </code></pre>
+                    </ul>
+
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Create Role & Database</h2>
+                    <div id="li30" style="font-size: 25px";>
+                    <ul>
+                        <li>Become postgres system user</li>
+                        <pre><code data-trim>
+                            sudo su - postgres</pre>
+                        </code></pre>
+                        <li>Log into database (default postgres role &amp; database already created)</li>
+                        <pre><code data-trim>psql</code></pre>
+                        <ul>
+                            <li>\? to see all available commands</li>
+                        </ul>
+                        <li>Create a role &amp; database for yourself</li>
+                        <pre><code data-trim>
+                            postgres=# CREATE ROLE training WITH LOGIN SUPERUSER;
+                            postgres=# CREATE DATABASE training;
+                        </code></pre>
+                        <li>Should now be able to log into PostgreSQL as your training user</li>
+                        <li>Create replication role for later</li>
+                        <pre><code data-trim>
+                            training=# CREATE ROLE replication WITH LOGIN REPLICATION;</pre>
+                        </code></pre>
+                        <ul>
+                            <li>Set passwords ("password")</li>
+                            <pre><code data-trim>
+                                training=# \password training
+                                training=# \password replication
+                            </code></pre>
+                        </ul>
+                    </ul>
+                    </div>
+                    <aside class="notes">
+                        Recommend keeping second terminal open logged in as postgres user. Avoids having to exit and re-sudo throughout training. Demo trying to connect before the training user & database are created.
+                    </aside>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Configuration - pg_hba.conf</h2>
+                    <ul style="font-size:30px;">
+                        <li style="margin:0; padding:0"><a href="http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html" target="_blank">http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html</a></li>
+                        <li>Find where your data directory is</li>
+                        <pre><code data-trim>
+                            training=# show data_directory;
+                        </code></pre>
+                        <li>Open pg_hba.conf file located in data directory (must be postgres user)</li>
+                        <li>All authentication into cluster is controlled by this file</li>
+                        <li>Secure SSL configurations possible</li>
+                        <li>Evaluated in order top-down</li>
+                        <li>Default only allows local system users with matching role names (peer)</li>
+                        <li><b style="color:red">Avoid "trust" if at all possible</b></li>
+                        <ul>
+                            <li>.pgpass file allows password authentication without having to type it every time</li>
+                            <li><a href="http://www.postgresql.org/docs/10/static/libpq-pgpass.html" target="_blank">http://www.postgresql.org/docs/10/static/libpq-pgpass.html</a></li>
+                        </ul>
+                    </ul>
+                </section>
+
+                
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Configuration - pg_hba.conf</h2>
+                    <ul>
+                        <li>Add following lines above other active ones (for later):</li>
+                        <pre><code data-trim>
+                            # TYPE  DATABASE       USER           ADDRESS         METHOD
+                            host    replication    replication    127.0.0.1/32    md5
+                            host    replication    training       127.0.0.1/32    trust 
+                        </code></pre>
+                        <li>Only requires a reload to put new HBA settings into place</li>
+                        <pre><code data-trim>
+                            training=# select pg_reload_conf();
+                            OR
+                            sudo systemctl reload postgresql-10
+                        </code></pre>
+                        <li>Check log file for SIGHUP</li>
+                        <ul>
+                            <li>"log" directory in the data directory</li>
+                            <li>Changed from "pg_log" &lt; PG10</li>
+                        </ul>
+                    </ul>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Configuration - postgresql.conf</h2>
+                    <div id="li30">
+                        <ul style="font-size:25px;">
+                            <li>Main configuration file</li>
+                            <li>Important initial settings review (<i>most require restart</i>)</li>
+                            <ul >
+                                <li>listen_addresses (defaults to localhost only; set to server IP; * = all IPs)</li>
+                                <li>max_connections (monitor active connections, <a href="https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server" target="_blank">affected by work_mem</a>)</li>
+                                <li><a href="http://www.keithf4.com/a-small-database-does-not-mean-small-shared_buffers/" target="_blank">shared_buffers</a> (8GB good starting point; leave default for training)</li>
+                                <li>work_mem (2-5MB good starting point. The more RAM the better.)</li>
+                                <li>maintenance_work_mem (1GB good starting point)</li>
+                                <li style="color:orange"><i><b>wal_level = replica</b></i></li>
+                                <li>effective_cache_size (50% RAM good starting point)</li>
+                                <li style="color:orange"><i><b>archive_mode = on</b></i></li>
+                                <li style="color:orange"><i><b>archive_command = ‘/bin/true’</b></i></li>
+                                <li style="color:orange"><i><b>archive_timeout = 60</b></i> <span style="color:#535353"> (for demo purposes, usually higher)</span></li>
+                                <li style="color:orange"><i><b>max_wal_senders = 10</b></i></li>
+                                <li style="color:orange"><i><b>wal_keep_segments = 30</b></i></li>
+                                <li style="color:orange"><i><b>max_replication_slots = 10</b></i></li>
+                                <li style="color:orange"><i><b>hot_standby = on</b></i><span style="color:#535353"> (setting for replica)</span></li> 
+                                <li style="color:orange"><i><b>logging_collector = on</b></i></li>
+                                <li style="color:orange"><i><b>autovacuum_freeze_max_age = 1000000000</b></i> <span style="color:#535353">(only set this high if monitoring for wraparound. So monitor for wraparound and set it this high.)</span></li>
+                            </ul>
+                        </ul>
+                    </div>
+                    <aside class="notes">
+                        - Discuss WAL files and what they are
+                        - Mention delay settings and what they’re for near the hot_standby setting
+                    </aside>
+                    </aside>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Configuration - postgresql.conf</h2>
+                        <ul style="font-size:21px;line-height:28px">
+                            <li>Important secondary settings review (all only require reload)</li>
+                            <ul>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-MAX-WAL-SIZE" target="_blank">max_wal_size</a> = 1GB (default; hitting this forces checkpoint)
+                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-MIN-WAL-SIZE" target="_blank">min_wal_size</a> = 80MB (default; WAL kept for recycling)</li>
+                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-CHECKPOINT-TIMEOUT" target="_blank">checkpoint_timeout</a> = 5min (default; good starting point)</li>
+                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-CHECKPOINT-COMPLETION-TARGET" target="_blank">checkpoint_completion_target</a> = 0.9</li>
+                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-FILENAME" target="_blank">log_filename</a> = 'postgresql-%Y-%m-%d.log'</li>
+                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT" target="_blank">log_min_duration_statement</a> = 5000ms  (beware setting too low. can fill logs fast)</li>
+                                <li>log_connections = on</li>
+                                <li>log_disconnections = on</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-LINE-PREFIX" target="_blank">log_line_prefix</a> = '%m [%r] [%p]: [l-%l] user=%u,db=%d,e=%e '</li>
+                                <ul>
+                                    <li>%x &amp; %v can be good for transaction tracking</li>
+                                </ul>
+                                <li>log_temp_files = 4096 (kilobytes; good starting point = work_mem)</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-LOCK-WAITS" target="_blank">log_lock_waits</a> = on</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD" target="_blank">autovacuum_vacuum_threshold</a> = 500  (default too aggressive)</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-THRESHOLD" target="_blank">autovacuum_analyze_threshold</a> = 500  (default too aggressive)</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR" target="_blank">autovacuum_vacuum_scale_factor</a> = 0.1  (default too mild)</li>
+                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR" target="_blank">autovacuum_analyze_scale_factor</a> = 0.05  (default too mild)</li>
+                            </ul>
+                            <li>Restart postgresql to put all new settings into place (as training user)</li>
+                            <pre style="font-size:16px;">sudo systemctl restart postgresql-10</pre>
+                            <li>If restart unsuccessful, check postgresql log files</li>
+                        </ul>
+                    <aside class="notes">
+                        Mention log_rotation_size & log_filename are related in how log file re-use happens. Default (%a) would reuse old log file when that day comes around again next week). If the same log_filename already exists when it goes to role over, it will overwrite. If daily & will role over in one day, add more to the log_filename (hours, minutes, seconds)
+                    </aside>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Vacuums & Freezing</h2>
+                    <ul style="font-size:23px;line-height:28px">
+                        <li><a href="http://www.postgresql.org/docs/10/static/routine-vacuuming.html" target="_blank">http://www.postgresql.org/docs/10/static/routine-vacuuming.html</a></li>
+                        <li>Multi-Version Currency Control (MVCC)</li>
+                        <ul>
+                            <li>Updated/Deleted rows not actually deleted. Just marked unavailable.</li>
+                            <li>Vacuum marks unavailable rows as re-usable space. <a href="http://www.keithf4.com/checking-for-postgresql-bloat/" target="_blank">Leads to bloat.</a></li>
+                            <li>VACUUM FULL recovers disk space but locks table for full table rewrite</li>
+                            <li><a href="http://reorg.github.io" target="_blank">pg_repack</a> - Extension to reclaim disk space with minimal lock</li>
+                            <li>Don’t overuse VACUUM FULL or pg_repack. </li>
+                            <ul>
+                                <li>Reusable space can be more efficient than [re]allocating new pages</li>
+                            </ul>
+                        </ul>
+                        <li>Transaction ID Wraparound</li>
+                        <ul>
+                            <li>Every row has transaction id (XID) value</li>
+                            <li>Every new write transaction increments cluster-wide XID</li>
+                            <li>Determines visibility to current transactions</li>
+                            <li>32-bit number, so wraparound is possible after 4 billion transactions</li>
+                            <ul>
+                                <li>2 billion transactions newer than current & 2 billion older</li>
+                            </ul>
+                            <li>VACUUM marks rows as <b><i>frozen</i></b>, setting the XID such that it will be visible to all future transactions</li>
+                            <li>Reserved, FrozenXID always older than all XIDs</li>
+                            <ul>
+                                <li>VACUUM FREEZE tables rarely written to so that vacuum can skip pages and run more efficiently (9.6+ feature)</li>
+                            </ul>
+                            <li>autovacuum_freeze_max_age - when table XID value reaches this, a VACUUM is forced (even if autovac turned off).</li>
+                        </ul>
+                    </ul>
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication - Basic</h2>
+                    <ul style="font-size:30px;">
+                        <li>Ensure line exists in master pg_hba.conf and reload master</li>
+                        <pre><code data-trim>
+                            host    replication    replication    127.0.0.1/32    md5
+                        </code></pre>
+                        <li>Create a replication slot</li>
+                        <pre><code data-trim>
+                            training=# SELECT * FROM pg_create_physical_replication_slot('training_replica');
+                            training=# SELECT * FROM pg_replication_slots;
+                        </code></pre>
+                        <li>Use pg_basebackup to create copy of master (as postgres system user)</li>
+                        <ul>
+                            <li><a href="http://www.postgresql.org/docs/10/static/app-pgbasebackup.html" target="_blank">http://www.postgresql.org/docs/10/static/app-pgbasebackup.html</a></li>
+                        <pre><code data-trim>
+                            pg_basebackup -h 127.0.0.1 -U replication -D /var/lib/pgsql/10/replica -R -Xs -P -S training_replica -v
+
+                            training=# SELECT * FROM pg_replication_slots;
+                        </code></pre>
+                        </ul>
+                    </ul>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication - Basic</h2>
+                    <ul style="font-size:30px;">
+
+                        <li>Edit replica postgresql.conf </li>
+                        <pre><code data-trim>
+                            port = 5444 
+                        </code></pre>
+                        <li>Edit replica <a href="https://www.postgresql.org/docs/10/static/recovery-config.html" target="_blank">recovery.conf</a></li>
+                        <pre><code data-trim>
+                            standby_mode = 'on'
+                            primary_conninfo = 'host=127.0.0.1 port=5432 user=replication password=password'
+                            primary_slot_name = 'training_replica'
+                            recovery_target_timeline='latest'
+                        </code></pre>
+
+                    </ul>
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication - Basic</h2>
+                    <ul>
+                        <li>Production method for CentOS</li>
+                        <li>Create new systemd service for replica</li>
+                        <pre><code data-trim>
+                            sudo cp /usr/lib/systemd/system/postgresql-10.service /etc/systemd/system/postgresql-10-replica.service
+                        </code></pre>
+                        <li><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/chap-Managing_Services_with_systemd#tabl-Managing_Services_with_systemd-Introduction-Units-Locations" target="_blank">See systemd service file locations</a></li>
+                        <li>Edit config file to set replica data directory (as root):</li>
+                        <pre><code data-trim>
+                            Environment=PGDATA=/var/lib/pgsql/10/replica/
+                        </code></pre>
+                        <li>Register service, start up replica &amp; and check service status</li>
+                        <pre><code data-trim>
+                            sudo systemctl daemon-reload
+                            sudo systemctl enable postgresql-10-replica
+                            sudo systemctl start postgresql-10-replica
+                            sudo systemctl status postgresql-10-replica
+                        </code></pre>
+                    </ul>
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication - Basic</h2>
+                    <ul>
+                        <li>Check replica log to ensure it connected</li>
+                        <pre><code data-trim>
+                            started streaming WAL from primary at 0/3000000 on timeline 1
+                        </code></pre>
+                        <li>Check from master</li>
+                        <pre><code data-trim>
+                            training=# SELECT * FROM pg_stat_replication;
+                            training=# SELECT * FROM pg_replication_slots;
+                        </code></pre>
+                        <li>Create an object and make sure it appears on replica (as training user)</li>
+                        <pre><code data-trim>
+                            training=# CREATE TABLE testing (
+                                id bigint primary key, 
+                                stuff text, 
+                                inserted_at timestamptz default now());
+
+                            training=# INSERT INTO testing (id) values (generate_series(1,1000));
+                        </code></pre>
+                        <li>Connect to replica</li>
+                        <pre><code data-trim>
+                            psql -p 5444
+
+                            training=# SELECT pg_is_in_recovery();
+                        </code></pre>
+                    </ul>
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - pg_dump/all</h2>
+                    <div id="li30">
+                        <ul style="font-size:25px;">
+                            <li>pg_dumpall</li>
+                            <ul>
+                                <li>Dumps all databases in cluster in plaintext format</li>
+                                <li>Can dump only cluster-wide data: roles, tablespaces</li>
+                                <pre><code data-trim>
+                                    pg_dumpall -g -f /home/training/globals.sql
+                                </code></pre>
+                                <li>Use psql to restore backup</li>
+                                <li>Restores entire cluster. No object filtering options.</li>
+                            </ul>
+                            <li>pg_dump</li>
+                            <ul>
+                                <li>Backs up individual databases in cluster</li>
+                                <li>Does not back up roles or tablespaces, but does back up object privileges of those roles.</li>
+                                <li>Provides binary backup format that can make restore easier</li>
+                                <li>Use pg_restore to restore binary backups</li>
+                                <li>Can restore individual schemas or tables instead of entire cluster</li>
+                                <li><b><i>--section</i></b> option can break up dump into stages</li>
+                                <pre><code data-trim>
+                                    pg_dump -Fc training -f /home/training/training.pgr -v
+                                </code></pre>
+                            </ul>
+                        </ul>
+                    </div>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Restore - pg_restore</h2>
+                        <ul style="font-size:23px;line-height:28px">
+                            <li>As training user, create new database in home folder</li>
+                            <pre><code data-trim style="font-size:14px;">
+                                mkdir /home/training/mydb
+                                chmod 700 /home/training/mydb
+                                /usr/pgsql-10/bin/initdb -D /home/training/mydb
+                            </code></pre>
+                            <li>Edit postgresql.conf:</li>
+                            <pre><code data-trim style="font-size:14px;">
+                                    port = 5888
+                                    unix_socket_directories = '/home/training/mydb'
+                            </code></pre>
+                            <li>Start the DB</li>
+                            <pre><code data-trim style="font-size:14px;">
+                                /usr/pgsql-10/bin/pg_ctl -D /home/training/mydb start
+                            </code></pre>
+                            <li>Automatically made role “training”</li>
+                            <li>psql used to restore pg_dumpall or plaintext version of pg_dump</li>
+                            <ul>
+                                <li>Restore roles before restoring database so permissions are set properly</li>
+                            </ul>
+                            <pre><code data-trim style="font-size:14px">
+                                psql -h localhost -p 5888 -d postgres -f /home/training/globals.sql -a
+                            </code></pre>
+                            <li>pg_restore used to restore binary dump from pg_dump</li>
+                            <pre><code data-trim style="font-size:14px">
+                                psql -h localhost -p 5888 postgres
+                                postgres=# create database new_training;
+                                pg_restore -h localhost -p 5888 -d new_training -v /home/training/training.pgr
+                            </code></pre>
+                        </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Restore - pg_restore</h2>
+                    <ul>
+                        <li>Smaller backups &amp; more flexible restore</li>
+                        <li>Must recreate all indexes &amp; constraints</li>
+                        <li>Stop this instance and delete it</li>
+                        <pre><code data-trim style="font-size:14px">
+                            /usr/pgsql-10/bin/pg_ctl stop -m fast -D /home/training/mydb
+                            rm -r /home/training/mydb
+                        </code></pre>
+                    </ul>
+
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - File System (Basic)</h2>
+                    <h4>pg_basebackup</h4>
+                    <ul>
+                        <li>We already did it! Let's do it again...</li>
+                        <li>Create compressed backup</li>
+                        <pre><code data-trim>
+                            mkdir /home/training/mybackup
+                            pg_basebackup -h 127.0.0.1 -D /home/training/mybackup -Ft -z -Xs -P -v
+                        </code></pre>
+                        <li>Separate tar file is made for necessary WAL files</li>
+                        <li>If additional tablespaces, they go in their own tar file</li>
+                        <li>Do not set -R for normal backups</li>
+                        <li>-Xs (--wal-method=stream) is default for PG10+</li>
+                        <ul>
+                            <li>-Xf (fetch) only works if all WAL generated during backup run exist at the end of the backup</li>
+                            <li>-Xf can require extremely high wal_keep_segements on a busy database</li>
+                            <li>-Xs does require one additional wal sender being available (max_wal_senders)</li>
+                        </ul>
+                    </ul>    
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Restore - File System (Basic)</h2>
+                    <div id="li30">
+                        <ul>
+                            <li>We already did it! Let's do it again...</li>
+                            <pre><code data-trim>
+                                mkdir /home/training/mydb2
+                                chmod 700 /home/training/mydb2
+                            </code></pre>
+                            <pre><code data-trim>
+                                tar xvzf /home/training/mybackup/base.tar.gz -C /home/training/mydb2/
+                                tar xvzf /home/training/mybackup/pg_wal.tar.gz -C /home/training/mydb2/pg_wal
+                            </code></pre>
+                            <pre><code data-trim>
+                                EDIT postgresql.conf: 
+                                    port = 5888
+                                    unix_socket_directories = '/home/training/mydb2'
+                            </code></pre>
+                            <pre><code data-trim>
+                                /usr/pgsql-10/bin/pg_ctl -D /home/training/mydb2 start
+
+                                psql -h localhost -p 5888
+                                (requires hba fix)
+
+                                psql -h /home/training/mydb2/ -p 5888
+                            </code></pre>
+                        </ul>
+                    </div>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Restore - File System (Basic)</h2>
+                    <ul>
+                        <li>MUCH faster disaster recovery</li>
+                        <li>Less flexible restore options (all or nothing)</li>
+                        <li>Stop this instance and delete it</li>
+                        <pre><code data-trim>
+                            /usr/pgsql-10/bin/pg_ctl stop -m fast -D /home/training/mydb2
+                            rm -r /home/training/mydb2
+                        </code></pre>
+                    </ul>
+
+                </section>
+
+                <!-- VM Snapshot -->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - File System (Advanced)</h2>
+                    <ul>
+                        <li>pgBackRest - <a href="http://pgbackrest.org" target="_blank">http://pgbackrest.org</a></li>
+                        <li>Point-in-Time Recovery (PITR)</li>
+                        <li>Incremental &amp; Differential Backups</li>
+                        <li>Parallel Backup &amp; Restore</li>
+                        <li>Backup Rotation &amp; Archive Expiration</li>
+                        <li>Checksums</li>
+                        <li>Many more options!</li>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - File System (Advanced)</h2>
+                    <ul style="font-size:24px;line-height:28px">
+                        <li>Install pgBackRest</li>
+                        <pre><code data-trim>
+                            sudo yum install pgbackrest.x86_64
+                        </code></pre>
+                        <li>Configure a stanza</li>
+                        <ul>
+                            <li>Defines where PG cluster is located, how it will be backed up, archiving options, etc</li>
+                            <li>One stanza on db server. Many stanzas on a dedicated backup machine.</li>
+                            <li>Edit /etc/pgbackrest.conf (default location, requires root)</li>
+                            <pre><code data-trim>
+                                [global]
+                                repo-path=/var/lib/pgbackrest
+
+                                [main]
+                                db-path=/var/lib/pgsql/10/data
+                                retention-full=2
+                            </code></pre>
+                        </ul>
+                        <li>Ensure repository folders exists with proper permissions. Should already be there and ready if install worked.</li>
+                        <pre><code data-trim>
+                            sudo mkdir /var/lib/pgbackrest
+                            sudo chmod 750 /var/lib/pgbackrest/
+                            sudo chown postgres:postgres /var/lib/pgbackrest
+                            sudo chown postgres:postgres /var/log/pgbackrest
+                        </code></pre>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - File System (Advanced)</h2>
+                    <ul>
+                        <li>Set primary postgresql.conf options for WAL archiving</li>
+                        <pre><code data-trim>
+                            archive_command = 'pgbackrest --stanza=main archive-push %p'
+                            archive_mode = on
+                            max_wal_senders = 10 
+                            wal_level = replica
+                        </code></pre>
+                        <li>Normally set above exactly the same on replica, but can't in VM</a>
+                        <li>Reload/restart to set above options</li>
+                        <pre><code data-trim>
+                            sudo systemctl reload postgresql-10
+                        </code></pre>
+                        <li>Create &amp; check the stanza</li>
+                        <pre><code data-trim>
+                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info stanza-create
+
+                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info check
+                        </code></pre>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Backup - File System (Advanced)</h2>
+                    <ul>
+                        <li>Perform a backup</li>
+                        <pre><code data-trim>
+                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info backup
+                        </code></pre>
+                        <li>By default attempts an incremental backup, but since no full exists, creates a full. Run again...</li>
+                        <pre><code data-trim>
+                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info backup
+                        </code></pre>
+                        <li>Designate backup type with --type option (full, incr, diff)</li>
+                        <pre><code data-trim>
+                            sudo -u postgres pgbackrest --stanza=main --type=diff --log-level-console=info backup
+                        </code></pre>
+                        <li>Check backup status</li>
+                        <pre><code data-trim>
+                            sudo -u postgres pgbackrest info
+                        </code></pre>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Restore - File System (Advanced)</h2>
+                    <ul>
+                        <li>pgBackRest will restore the database to the target designated in the stanza config by default.</li>
+                        <li>In disaster recovery, this is normal. --delta option can even speed it up greatly if original data dir is still there</li>
+                        <li>For training, restore to a target folder:</li>
+                        <pre><code data-trim>
+                            sudo su - postgres 
+                            mkdir /var/lib/pgsql/10/br_restore
+                            chmod 700 /var/lib/pgsql/10/br_restore
+
+                            pgbackrest restore --stanza=main --db-path=/var/lib/pgsql/10/br_restore
+                        </code></pre>
+                        <li>Change postgresql.conf port to 5911</li>
+                        <pre><code data-trim>
+                           /usr/pgsql-10/bin/pg_ctl start -D /var/lib/pgsql/10/br_restore/ 
+                        </code></pre>
+                        <pre><code data-trim>
+                           /usr/pgsql-10/bin/pg_ctl stop -m fast -D /var/lib/pgsql/10/br_restore/ 
+                           rm -r /var/lib/pgsql/10/br_restore
+                        </code></pre>
+                    </ul>
+
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Upgrading</h2>
+                    <ul id="li30" style="font-size:25px;">
+                        <li>Dump/Restore</li>
+                        <ul>
+                            <li>Works on all versions</li>
+                            <li>Use the pg_dump binary of the upgrade target</li>
+                            <li>8.4+ has parallel pg_restore</li>
+                            <li>9.3+ has parallel pg_dump</li>
+                            <li>Same caveats mentioned previously (smaller dump/longer restore)</li>
+                        </ul>
+                        <li>pg_upgrade</li>
+                        <ul>
+                            <li>In-place upgrade of data files</li>
+                            <li>Works only for 8.4.7+ (all previous versions must dump/restore)</li>
+                            <li>OS w/ hard link support can greatly decrease upgrade time</li>
+                            <ul>
+                                <li>Ex: 700GB upgrade in under 5 minutes, but...</li>
+                                <li>Don't forget to analyze entire cluster</li>
+                                <pre><code data-trim>
+                                    vacuumdb --all --analyze-in-stages 
+                                </code></pre>
+                            </ul>
+                        </ul>
+                        <li>Logical</li>
+                        <ul>
+                            <li>More setup and some limitations, but greatly reduced or even zero downtime upgrade</li>
+                            <li><a href="https://www.postgresql.org/docs/10/static/logical-replication.html" target="_blank">native</a>, <a href="https://www.2ndquadrant.com/en/resources/pglogical/" target="_blank">pglogical</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>, <a href="https://bucardo.org/Bucardo/" target="_blank">bucardo</a>, <a href="http://www.slony.info/" target="_blank">slony</a>, etc</li>
+                        </ul>
+                    </ul>
+                </section>
+
+<!-- 
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication - Advanced</h2>
+                    <ul>
+                        <li>Using pgbackrest</li>
+
+                    </ul>
+                </section>
+-->
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Monitoring</h2>
+                    <div id="li30">
+                        <ul style="font-size:25px;">
+                            <li>Replication status</li>
+                            <li>Active/Idle connections. Idle in transaction session times.</li>
+                            <li>Transaction ID Wraparound</li> 
+                            <li>Table statistics</li>
+                            <ul>
+                                <li>Sequential scans vs index scans</li>
+                                <li>Insert/Update/Delete rate</li>
+                            </ul>
+                            <li>Transactions</li>
+                            <ul>
+                                <li>Commits vs Rollbacks</li>
+                            </ul>
+                            <li>Database size</li> 
+                            <ul>
+                                <li>Total Table Size vs Total Index Size</li>
+                            </ul>
+                            <!--<li>Locks</li>-->
+                            <li>WAL file count (expected vs current)</li>
+                            <li>Log/query analysis - <a href="http://dalibo.github.io/pgbadger/" target="_blank">pgbadger</a></li>
+                            <li>Critical functions - <a href="https://github.com/keithf4/pg_jobmon" target="_blank">pg_jobmon</a></li>
+                            <li>Prometheus - <a href="https://prometheus.io" target="_blank">https://prometheus.io</a></li>
+                            <ul>
+                                <li>Trending + Monitoring</li>
+                                <li><a href="https://github.com/CrunchyData/pgmonitor" target="_blank">pgmonitor</a></li>
+                            </ul>
+                        </ul>
+                    </div>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Replication Status</h2>
+                    <div id="li30">
+                        <ul style="font-size:25px;">
+                            <li>Monitor from replica (seconds behind since last WAL replay)</li>
+                            <pre><code data-trim>
+                                SELECT extract(epoch from now() - pg_last_xact_replay_timestamp()) AS replica_lag;
+                            </code></pre>
+                            <li>Monitor from master if streaming (bytes behind)</li>
+                            <pre><code data-trim>
+                                SELECT client_hostname
+                                    , client_addr
+                                    , pg_wal_lsn_diff(pg_stat_replication.sent_lsn, 
+                                        pg_stat_replication.replay_lsn) AS byte_lag
+                                FROM pg_stat_replication;
+                            </code></pre>
+                        </ul>
+                    </div>
+                </section>
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Connections</h2>
+                    <ul id="li30" style="font-size:24px;">
+                        <li>pg_stat_activity only shows all column data to superuser. Otherwise it censors data of other sessions.</li>
+                        <li>PG10 has new <b></i>pg_monitor</i></b> default role that allows viewing/executing various monitoring views and functions</li>
+                        <pre><code data-trim>
+                            CREATE ROLE monitoring WITH LOGIN;
+                            GRANT pg_monitor TO monitoring;
+                        </code></pre>
+                        <li>Add to top of pg_hba.conf and reload</li>
+                        <pre><code data-trim>
+                            local    all    monitoring       trust 
+
+                            sudo systemctl reload postgresql-10
+                        </code></pre>
+                        <pre><code data-trim>
+                            select max_connections
+                            , total_used
+                            , coalesce(round(100*(total_used/max_connections)),0) as pct_used
+                            , idle
+                            , idle_in_txn
+                            , ((total_used - idle) - idle_in_txn) as active
+                            , (select coalesce(extract(epoch from (max(now() - query_start))),0) from 
+                                    pg_stat_activity where state = 'idle in transaction') as max_idle_in_txn
+                            , (select coalesce(extract(epoch from (max(now() - query_start))),0) from 
+                                    pg_stat_activity where state &lt;&gt; 'idle') as max_txn_time
+                            from (select count(*) as total_used
+                                    , coalesce(sum(case when state = 'idle' then 1 else 0 end),0) as idle
+                                    , coalesce(sum(case when state = 'idle in transaction' then 1 else 0 end),0) as idle_in_txn 
+                                    from pg_stat_activity) 
+                            x join (select setting::float AS max_connections FROM 
+                                        pg_settings WHERE name = 'max_connections') xx ON (true);
+                        </code></pre>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Autovac Freeze</h2>
+                    <ul id="li30" style="font-size:24px;">
+                        <li>Query that provides quick summary of transaction ID wraparound status</li>
+                        <pre><code data-trim>
+                            WITH max_age AS ( 
+                                SELECT 2000000000 as max_old_xid
+                                    , setting AS autovacuum_freeze_max_age 
+                                FROM pg_catalog.pg_settings 
+                                WHERE name = 'autovacuum_freeze_max_age')
+                            , per_database_stats AS ( 
+                                SELECT datname 
+                                    , m.max_old_xid::int 
+                                    , m.autovacuum_freeze_max_age::int 
+                                    , age(d.datfrozenxid) AS oldest_current_xid 
+                                FROM pg_catalog.pg_database d 
+                                JOIN max_age m ON (true) 
+                                WHERE d.datallowconn) 
+                            SELECT max(oldest_current_xid) AS oldest_current_xid 
+                                , max(ROUND(100*(oldest_current_xid/max_old_xid::float))) AS percent_towards_wraparound 
+                                , max(ROUND(100*(oldest_current_xid/autovacuum_freeze_max_age::float))) AS percent_towards_emergency_autovac 
+                            FROM per_database_stats;
+                        </code></pre>
+                        <pre><code data-trim>
+                            -[ RECORD 1 ]---------------------+----------
+                            oldest_current_xid                | 496452209
+                            percent_towards_wraparound        | 25
+                            percent_towards_emergency_autovac | 99
+
+                            postgres=# show autovacuum_freeze_max_age ;
+                            -[ RECORD 1 ]-------------+----------
+                            autovacuum_freeze_max_age | 500000000
+                        </code></pre>
+
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Table Statistics</h2>
+                    <ul>
+                        <li>Not cluster-wide. Run this on each database in the cluster.</li>
+                        <li>Graph all columns as rate of change</li>
+                        <pre><code data-trim>
+                            SELECT current_database() as dbname, schemaname, relname
+                                , seq_scan, seq_tup_read
+                                , idx_scan, idx_tup_fetch
+                                , n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd
+                                , n_live_tup, n_dead_tup
+                                , vacuum_count, autovacuum_count
+                                , analyze_count, autoanalyze_count 
+                                FROM pg_catalog.pg_stat_user_tables;
+                        </code></pre>
+                    </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Table Sizes</h2>
+                    <ul>
+                        <li>Not cluster-wide. Run this on each database in the cluster.</li>
+                        <li>Size includes all indexes in the table</li>
+                        <pre><code data-trim>
+                            SELECT current_database() as dbname
+                                , n.nspname as schemaname
+                                , c.relname
+                                , pg_total_relation_size(c.oid) as size_bytes 
+                            FROM pg_catalog.pg_class c 
+                            JOIN pg_catalog.pg_namespace n ON c.relnamespace = n.oid 
+                            WHERE NOT pg_is_other_temp_schema(n.oid) 
+                            AND relkind IN ('r', 'm', 'f');
+                        </code></pre>
+
+                </section>
+
+   				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Database/Cluster-wide Statistics</h2>
+                    <ul>
+                        <li>Graph all columns as rate of change</li>
+                    </ul>
+                    <pre><code data-trim>
+                        SELECT s.datname as dbname
+                            , xact_commit, xact_rollback
+                            , blks_read, blks_hit
+                            , tup_returned, tup_fetched
+                            , tup_inserted, tup_updated, tup_deleted
+                            , conflicts
+                            , temp_files, temp_bytes
+                            , deadlocks 
+                        FROM pg_catalog.pg_stat_database s 
+                        JOIN pg_catalog.pg_database d on d.datname = s.datname 
+                        WHERE d.datistemplate = false;
+                    </code></pre>
+
+                </section>
+
+             <section>
+                    <h2>Database Sizes</h2>
+                    <ul>
+                        <li>Returns size of each database in cluster</li>
+                        <li>Graph as both actual value &amp; rate of change</li>
+                        <li>Sum bytes for total cluster size</li>
+                    </ul>
+                    <pre><code data-trim>
+                        SELECT datname as dbname
+                            , pg_database_size(datname) as bytes 
+                        FROM pg_catalog.pg_database 
+                        WHERE datistemplate = false;
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>Table vs Index Size</h2>
+                    <ul>
+                        <li>Useful stat just to see the impact that indexes are having on your total size</li>
+                        <li>Plot both points together on same graph</li>
+                    </ul>
+                    <pre><code data-trim>
+                        SELECT sum(pg_relation_size(c.oid)) as size_table 
+                        FROM pg_class c
+                        JOIN pg_namespace n ON c.relnamespace = n.oid 
+                        WHERE relkind in ( 'm', 'r', 'f') 
+                        AND NOT pg_is_other_temp_schema(n.oid); 
+                    </code></pre>
+                    <pre><code data-trim>
+                        SELECT sum(pg_relation_size(c.oid)) as size_index 
+                        FROM pg_class c
+                        JOIN pg_namespace n ON c.relnamespace = n.oid 
+                        WHERE (relkind = 'i') 
+                        AND NOT pg_is_other_temp_schema(n.oid); 
+                    </code></pre>
+                </section>
+
+                <!--
+                <section>
+                    <h2>Locks</h2>
+                    <pre>
+select count(*) as total
+, count(nullif(granted,true)) as waiting
+, count(nullif(mode ilike '%exclusive%',false)) as exclusive 
+from pg_locks;
+                    </pre>
+                </section>
+                -->
+                <section>
+                    <h2>WAL Metrics</h2>
+                    <ul>
+                        <li><b><i>pg_ls_waldir()</i></b> normally requires superuser privileges, but can also be granted with pg_monitor.</li>
+                        <li>Lists files in pg_wal directory</li>
+                        <li>Warn if it goes above 150% for longer than 10 minutes.</li>
+                        <li>Worth investigating if ever &gt;= 300%. Much higher than usual write activity.</li>
+                        <li>May need to increase max_wal_size</li>
+                        <li>Watch for very old WAL files lingering</li>
+                        <pre><code data-trim>
+                            SELECT count(*) AS total_count
+                                , sum(size) AS total_size_bytes
+                                , 100 * sum(size) / (SELECT setting::int*1024*1024 FROM pg_settings WHERE name = 'max_wal_size') AS perc_max
+                                , min(modification)
+                            FROM pg_ls_waldir();
+                        </code></pre>
+                    </ul>
+
+                </section>
+                <!-- End monitoring query examples --> 
+
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Failover</h2>
+                    <ul>
+                        <li>Stop the master</li>
+                        <pre><code data-trim>
+                            sudo systemctl stop postgresql-10
+                            sudo systemctl status postgresql-10
+                        </code></pre>
+                        <li>Check replica logs to see connection errors</li>
+                        <pre><code data-trim>
+                            /var/lib/pgsql/10/replica/log/...
+                        </code></pre>
+                        <li>Promote replica</li>
+                        <pre><code data-trim>
+                            /usr/pgsql-10/bin/pg_ctl promote -D /var/lib/pgsql/10/replica
+                        </code></pre>
+                        <li>Check logs</li>
+                        <li>Write to database (running on port 5444)</li>
+                    </ul>
+                </section>
+<!--
+                <section>
+                - Fix backrest to work on the replica
+                - Set up replication with pgbackrest
+                    - Do a delta restore of the replica database to the old main directory
+                    - Pass the recovery.conf options to the restore command so it creates it automatically
+                    - Check if the replication slot was made on replica
+
+                </section>
+-->
+                <section data-background="css/theme/omniti_bg_logo.png">
+                    <h1>Final Questions?</h1>
+                </section>
+
+                 <section data-background="css/theme/crunchy_white_bg.png">
+                     <h1>Thank you!</h1>
+                    <ul>
+                        <li>PostgreSQL Home Page - <a href="http://www.postgresql.org" target="_blank">postgresql.org</a></li>
+                        <li>Planet PostgreSQL Community News Feed - <a href="http://planet.postgresql.org" target="_blank">planet.postgresql.org</a></li>
+                        <li>PostgreSQL Extension Network - <a href="http://pgxn.org" target="_blank">pgxn.org</a></li>
+                        <li>Crunchy Data Solutions, Inc - <a href="http://www.crunchydata.com" target="_blank">crunchydata.com</a></li>
+                        <li>Make cool presentations like this - <a href="https://github.com/hakimel/reveal.js/" target="_blank">reveal.js</a></li>
+                    </ul>
+
+                 </section>
+
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				],
+                slideNumber: true,
+                history: true,
+                controlsLayout: "edges"
+			});
+		</script>
+	</body>
+</html>
