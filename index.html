@@ -47,7 +47,7 @@
                         </p>
                         <p>
                         Senior Database Engineer @ <a href="https://www.crunchydata.com/" target="_blank">Crunchy Data Solutions</a><br/>
-                        (<a href="https://github.com/keithf4/pg_partman" target="_blank">pg_partman</a>, <a href="https://github.com/CrunchyData/pgmonitor" target="_blank">pg_monitor</a>, <a href="https://github.com/omniti-labs/pg_extractor" target="_blank">pg_extractor</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>)
+                        (<a href="https://github.com/pgpartman/pg_partman" target="_blank">pg_partman</a>, <a href="https://github.com/CrunchyData/pgmonitor" target="_blank">pg_monitor</a>, <a href="https://github.com/omniti-labs/pg_extractor" target="_blank">pg_extractor</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>)
                         </p>
                         <p>
                         <br/>
@@ -67,7 +67,7 @@
                             <ul>
                                 <li><a href="https://www.virtualbox.org/wiki/Linux_Downloads" target="_blank">Linux install instructions</a></li>
                             </ul>
-                            <li>Copy <b style="color:orange"><i>Oracle_VM_VirtualBox_Extension_Pack-5.2.6-120293.vbox-extpack</i></b> and Install by double-clicking</li>
+                            <li>Copy <b style="color:orange"><i>Oracle_VM_VirtualBox_Extension_Pack-5.2.18.vbox-extpack</i></b> and Install by double-clicking</li>
                             <li>Remove USB Stick</li>
                             <li>Import Virtual Machine Image</li>
                             <ul>
@@ -124,7 +124,7 @@
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Training VM</h2>
                     <ul>
-                        <li>VirtualBox 5.2.6 + Extension Pack</li>
+                        <li>VirtualBox 5.2.18 + Extension Pack</li>
                         <li>Login: training / postgres</li>
                         <li><b><i>training</i></b> user has sudo</li>
                         <ul>
@@ -132,13 +132,14 @@
                         </ul>
                         <li>Applications -&gt; System Tools -&gt; Terminal</li>
                         <li>Internet should work within VM (if it works externally)</li>
-                        <li>Clipboard should work between host & VM</li>
+                        <li>Clipboard should work between host &amp; VM</li>
                         <li><b><i>vim</i></b> &amp; <b><i>nano</i></b> for CLI file editing. For GUI:</li>
                         <pre><code data-trim>
-                            sudo gedit &amp;
+                            sudo -s
+                            gedit &amp;
                         </code></pre>
                             then close that terminal to avoid spam
-                        <li>Take snapshot now & as many times as you'd like along the way</li>
+                        <li>Take snapshot now &amp; as many times as you'd like along the way</li>
                     </ul>
                 </section>
 
@@ -153,7 +154,7 @@
                             <li>Select 10, CentOS7, x86_64</li>
                         </ul>
                         <pre><code data-trim>
-                            sudo yum install https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-1.noarch.rpm
+                            sudo yum install https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-2.noarch.rpm
                         </code></pre>
                         <li>Install PostgreSQL 10.x &amp; Contrib modules</li>
                             <pre><code data-trim>
@@ -172,11 +173,10 @@
                 </section>
 
                 <!-- VM Snapshot -->
-
 				<section data-background="css/theme/crunchy_white_bg.png">
-                    <h2>Create Role & Database</h2>
-                    <div id="li30" style="font-size: 25px";>
+                    <h2>Initial Login</h2>
                     <ul>
+
                         <li>Become postgres system user</li>
                         <pre><code data-trim>
                             sudo su - postgres</pre>
@@ -186,30 +186,10 @@
                         <ul>
                             <li>\? to see all available commands</li>
                         </ul>
-                        <li>Create a role &amp; database for yourself</li>
-                        <pre><code data-trim>
-                            postgres=# CREATE ROLE training WITH LOGIN SUPERUSER;
-                            postgres=# CREATE DATABASE training;
-                        </code></pre>
-                        <li>Should now be able to log into PostgreSQL as your training user</li>
-                        <li>Create replication role for later</li>
-                        <pre><code data-trim>
-                            training=# CREATE ROLE replication WITH LOGIN REPLICATION;</pre>
-                        </code></pre>
-                        <ul>
-                            <li>Set passwords ("password")</li>
-                            <pre><code data-trim>
-                                training=# \password training
-                                training=# \password replication
-                            </code></pre>
-                        </ul>
+                        <li>Recommend keeping second terminal opened logged in as postgres user</li>
                     </ul>
-                    </div>
-                    <aside class="notes">
-                        Recommend keeping second terminal open logged in as postgres user. Avoids having to exit and re-sudo throughout training. Demo trying to connect before the training user & database are created.
-                    </aside>
-                </section>
 
+                </section>
 
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Configuration - pg_hba.conf</h2>
@@ -217,12 +197,12 @@
                         <li style="margin:0; padding:0"><a href="http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html" target="_blank">http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html</a></li>
                         <li>Find where your data directory is</li>
                         <pre><code data-trim>
-                            training=# show data_directory;
+                            postgres=# show data_directory;
                         </code></pre>
                         <li>Open pg_hba.conf file located in data directory (must be postgres user)</li>
                         <li>All authentication into cluster is controlled by this file</li>
                         <li>Secure SSL configurations possible</li>
-                        <li>Evaluated in order top-down</li>
+                        <li>Evaluated in top-down order</li>
                         <li>Default only allows local system users with matching role names (peer)</li>
                         <li><b style="color:red">Avoid "trust" if at all possible</b></li>
                         <ul>
@@ -244,9 +224,13 @@
                         </code></pre>
                         <li>Only requires a reload to put new HBA settings into place</li>
                         <pre><code data-trim>
-                            training=# select pg_reload_conf();
+                            postgres=# select pg_reload_conf();
                             OR
                             sudo systemctl reload postgresql-10
+                        </code></pre>
+                        <li>View current pg_hba.conf file from within database</li>
+                        <pre><code data-trim>
+                            SELECT * FROM pg_hba_file_rules;
                         </code></pre>
                         <li>Check log file for SIGHUP</li>
                         <ul>
@@ -254,6 +238,34 @@
                             <li>Changed from "pg_log" &lt; PG10</li>
                         </ul>
                     </ul>
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Create Role & Database</h2>
+                    <div id="li30" style="font-size: 25px";>
+                    <ul>
+                        <li>Create a role &amp; database for yourself</li>
+                        <pre><code data-trim>
+                            postgres=# CREATE ROLE training WITH LOGIN SUPERUSER;
+                            postgres=# CREATE DATABASE training;
+                        </code></pre>
+                        <li>Should now be able to log into PostgreSQL as your training user</li>
+                        <li>Create replication role for later</li>
+                        <pre><code data-trim>
+                            training=# CREATE ROLE replication WITH LOGIN REPLICATION;</pre>
+                        </code></pre>
+                        <ul>
+                            <li>Set passwords ("password")</li>
+                            <pre><code data-trim>
+                                training=# \password training
+                                training=# \password replication
+                            </code></pre>
+                        </ul>
+                    </ul>
+                    </div>
+                    <aside class="notes">
+                        Demo trying to connect before the training user &amp; database are created.
+                    </aside>
                 </section>
 
 
@@ -273,7 +285,7 @@
                                 <li>effective_cache_size (50% RAM good starting point)</li>
                                 <li style="color:orange"><i><b>archive_mode = on</b></i></li>
                                 <li style="color:orange"><i><b>archive_command = ‘/bin/true’</b></i></li>
-                                <li style="color:orange"><i><b>archive_timeout = 60</b></i> <span style="color:#535353"> (for demo purposes, usually higher)</span></li>
+                                <li style="color:orange"><i><b>archive_timeout = 60</b></i></li>
                                 <li style="color:orange"><i><b>max_wal_senders = 10</b></i></li>
                                 <li style="color:orange"><i><b>wal_keep_segments = 30</b></i></li>
                                 <li style="color:orange"><i><b>max_replication_slots = 10</b></i></li>
@@ -405,8 +417,6 @@
                     </ul>
                 </section>
 
-                <!-- VM Snapshot -->
-
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Replication - Basic</h2>
                     <ul>
@@ -429,8 +439,6 @@
                         </code></pre>
                     </ul>
                 </section>
-
-                <!-- VM Snapshot -->
 
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Replication - Basic</h2>
@@ -543,8 +551,6 @@
 
                 </section>
 
-                <!-- VM Snapshot -->
-
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Backup - File System (Basic)</h2>
                     <h4>pg_basebackup</h4>
@@ -611,8 +617,6 @@
 
                 </section>
 
-                <!-- VM Snapshot -->
-
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Backup - File System (Advanced)</h2>
                     <ul>
@@ -640,10 +644,10 @@
                             <li>Edit /etc/pgbackrest.conf (default location, requires root)</li>
                             <pre><code data-trim>
                                 [global]
-                                repo-path=/var/lib/pgbackrest
+                                repo1-path=/var/lib/pgbackrest
 
                                 [main]
-                                db-path=/var/lib/pgsql/10/data
+                                pg1-path=/var/lib/pgsql/10/data
                                 retention-full=2
                             </code></pre>
                         </ul>
@@ -1023,6 +1027,7 @@ from pg_locks;
                 </section>
                 <!-- End monitoring query examples --> 
 
+                <!-- VM Snapshot -->
 
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Failover</h2>
