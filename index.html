@@ -57,20 +57,44 @@
                         </p>
                     </section>
                     <section data-background="css/theme/crunchy_white_bg.png">
+                        <!--
+                            VM Setup
+                            - Turn on networking during OS install
+                            - Turn off USB support
+                            - Run yum update
+                            - Install kernel-devel & development group package
+                                - sudo yum --setopt=group_package_types=mandatory,default,optional groupinstall "Development Tools" 
+                            -- Install Guest Additions
+                            - Turn on bidirectional clipboard
+                            - Set firefox as default browser and slides as homepage
+                            - Put firefox & console icons on desktop
+                            - Shrink VM storage size
+                                - dd if=/dev/zero of=zerofillfile bs=1M
+                                - rm zerofillfile
+                                - VBoxManage modifyhd --compact "[path_to_of_image_file].vdi"
+                                
+                            -- Snapshots
+                                - PG Packages Installed
+                                - Configured Primary DB (Before Replica)
+                                - Replica Running (before pg_dump)
+                                - PGBackRest package installed
+                        
+                        -->
+
                         <h2>VM Setup</h2>
                         <ul>
                             <li>Copy <b style="color:orange"><i>PGTraining_VM.zip</i></b> from USB stick to your computer. Extract in location with at least 15GB of free space.</li>
-                            <li>Copy relevant VirtualBox installation file for your OS &amp; Install if necessary (5.2.18 minimum)</li>
+                            <li>Copy relevant VirtualBox installation file for your OS &amp; Install if necessary (5.2.30 minimum)</li>
                             <ul>
                                 <li><a href="https://www.virtualbox.org/wiki/Linux_Downloads" target="_blank">Linux install instructions</a></li>
                             </ul>
-                            <li>Copy <b style="color:orange"><i>Oracle_VM_VirtualBox_Extension_Pack-5.2.18.vbox-extpack</i></b> and Install by double-clicking</li>
+                            <li>Copy <b style="color:orange"><i>Oracle_VM_VirtualBox_Extension_Pack-5.2.30.vbox-extpack</i></b> and Install by double-clicking</li>
                             <li>Remove USB Stick</li>
                             <li>Import Virtual Machine Image</li>
                             <ul>
                                 <li><b>Machine -&gt; Add... -&gt;</b></li>
                                 <li>Browse to where you extracted the zip file (DO NOT run off USB stick)</li>
-                                <li>Double-click <b style="color:orange"><i>PG Training - CentOS7.vbox</i></b></li>
+                                <li>Double-click <b style="color:orange"><i>PGTraining_VM.vbox</i></b></li>
                             </ul>
                             <li>Start up VM!</li>
                         </ul>
@@ -121,7 +145,7 @@
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Training VM</h2>
                     <ul>
-                        <li>VirtualBox 5.2.18 + Extension Pack</li>
+                        <li>VirtualBox 5.2.30 + Extension Pack</li>
                         <li>Login: training / postgres</li>
                         <li><b><i>training</i></b> user has sudo</li>
                         <ul>
@@ -148,22 +172,22 @@
                         <ul>
                             <li>Default for CentOS 7 is 9.2 which is EOL as of Sept 2017</li>
                             <li><a href="http://www.postgresql.org/download/linux/redhat/" target="_blank">http://www.postgresql.org/download/linux/redhat/</a></li>
-                            <li>Select 10, CentOS7, x86_64</li>
+                            <li>Select 11, CentOS7, x86_64</li>
+                            <li>Recently changed from repo per major version to one universal repo per distro</li>
                         </ul>
                         <pre><code data-trim>
-                            sudo yum install https://download.postgresql.org/pub/repos/yum/10/redhat/rhel-7-x86_64/pgdg-centos10-10-2.noarch.rpm
+                            sudo yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
                         </code></pre>
-                        <li>Install PostgreSQL 10.x &amp; Contrib modules</li>
+                        <li>Install PostgreSQL 11.x &amp; Contrib modules</li>
                             <pre><code data-trim>
-                                sudo yum install postgresql10-server postgresql10-contrib</pre>
+                                sudo yum install postgresql11-server postgresql11-contrib</pre>
                             </code></pre>
                         <li>No clusters automatically created and no initial automatic startup (Redhat policy)</li>
                         <pre><code data-trim>
-                            sudo /usr/pgsql-10/bin/postgresql-10-setup initdb
-                            sudo systemctl enable postgresql-10
-                            sudo systemctl start postgresql-10
-                            systemctl status postgresql-10
-                        </code></pre>
+                            sudo /usr/pgsql-11/bin/postgresql-11-setup initdb
+                            sudo systemctl enable postgresql-11
+                            sudo systemctl start postgresql-11
+                            systemctl status postgresql-11
                         </code></pre>
                     </ul>
 
@@ -191,7 +215,7 @@
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Configuration - pg_hba.conf</h2>
                     <ul style="font-size:30px;">
-                        <li style="margin:0; padding:0"><a href="http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html" target="_blank">http://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html</a></li>
+                        <li style="margin:0; padding:0"><a href="http://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html" target="_blank">http://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html</a></li>
                         <li>Find where your data directory is</li>
                         <pre><code data-trim>
                             postgres=# show data_directory;
@@ -204,7 +228,7 @@
                         <li><b style="color:red">Avoid "trust" if at all possible</b></li>
                         <ul>
                             <li>.pgpass file allows password authentication without having to type it every time</li>
-                            <li><a href="http://www.postgresql.org/docs/10/static/libpq-pgpass.html" target="_blank">http://www.postgresql.org/docs/10/static/libpq-pgpass.html</a></li>
+                            <li><a href="http://www.postgresql.org/docs/current/static/libpq-pgpass.html" target="_blank">http://www.postgresql.org/docs/current/static/libpq-pgpass.html</a></li>
                         </ul>
                     </ul>
                 </section>
@@ -325,7 +349,7 @@
                                 <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR" target="_blank">autovacuum_analyze_scale_factor</a> = 0.05  (default too mild)</li>
                             </ul>
                             <li>Restart postgresql to put all new settings into place (as training user)</li>
-                            <pre style="font-size:16px;">sudo systemctl restart postgresql-10</pre>
+                            <pre style="font-size:16px;">sudo systemctl restart postgresql-11</pre>
                             <li>If restart unsuccessful, check postgresql log files</li>
                         </ul>
                     <aside class="notes">
@@ -337,7 +361,7 @@
 				<section data-background="css/theme/crunchy_white_bg.png">
                     <h2>Vacuums & Freezing</h2>
                     <ul style="font-size:23px;line-height:28px">
-                        <li><a href="http://www.postgresql.org/docs/10/static/routine-vacuuming.html" target="_blank">http://www.postgresql.org/docs/10/static/routine-vacuuming.html</a></li>
+                        <li><a href="http://www.postgresql.org/docs/current/static/routine-vacuuming.html" target="_blank">http://www.postgresql.org/docs/current/static/routine-vacuuming.html</a></li>
                         <li>Multi-Version Currency Control (MVCC)</li>
                         <ul>
                             <li>Updated/Deleted rows not actually deleted. Just marked unavailable.</li>
@@ -349,7 +373,7 @@
                                 <li>Reusable space can be more efficient than [re]allocating new pages</li>
                             </ul>
                         </ul>
-                        <li>Transaction ID Wraparound</li>
+                        <li>Transaction ID Exhaustion (Wraparound)</li>
                         <ul>
                             <li>Every row has transaction id (XID) value</li>
                             <li>Every new write transaction increments cluster-wide XID</li>
@@ -384,9 +408,9 @@
                         </code></pre>
                         <li>Use pg_basebackup to create copy of master (as postgres system user)</li>
                         <ul>
-                            <li><a href="http://www.postgresql.org/docs/10/static/app-pgbasebackup.html" target="_blank">http://www.postgresql.org/docs/10/static/app-pgbasebackup.html</a></li>
+                            <li><a href="http://www.postgresql.org/docs/current/static/app-pgbasebackup.html" target="_blank">http://www.postgresql.org/docs/current/static/app-pgbasebackup.html</a></li>
                         <pre><code data-trim>
-                            pg_basebackup -h 127.0.0.1 -U replication -D /var/lib/pgsql/10/replica -R -Xs -P -S training_replica -v
+                            pg_basebackup -h 127.0.0.1 -U replication -D /var/lib/pgsql/11/replica -R -Xs -P -S training_replica -v
 
                             training=# SELECT * FROM pg_replication_slots;
                         </code></pre>
@@ -420,7 +444,7 @@
                         <li>Production method for CentOS</li>
                         <li>Create new systemd service for replica</li>
                         <pre><code data-trim>
-                            sudo cp /usr/lib/systemd/system/postgresql-10.service /etc/systemd/system/postgresql-10-replica.service
+                            sudo cp /usr/lib/systemd/system/postgresql-11.service /etc/systemd/system/postgresql-11-replica.service
                         </code></pre>
                         <li><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/chap-Managing_Services_with_systemd#tabl-Managing_Services_with_systemd-Introduction-Units-Locations" target="_blank">See systemd service file locations</a></li>
                         <li>Edit config file to set replica data directory (as root):</li>
@@ -430,9 +454,9 @@
                         <li>Register service, start up replica &amp; and check service status</li>
                         <pre><code data-trim>
                             sudo systemctl daemon-reload
-                            sudo systemctl enable postgresql-10-replica
-                            sudo systemctl start postgresql-10-replica
-                            sudo systemctl status postgresql-10-replica
+                            sudo systemctl enable postgresql-11-replica
+                            sudo systemctl start postgresql-11-replica
+                            sudo systemctl status postgresql-11-replica
                         </code></pre>
                     </ul>
                 </section>
@@ -506,7 +530,7 @@
                             <pre><code data-trim style="font-size:14px;">
                                 mkdir /home/training/mydb
                                 chmod 700 /home/training/mydb
-                                /usr/pgsql-10/bin/initdb -D /home/training/mydb
+                                /usr/pgsql-11/bin/initdb -D /home/training/mydb
                             </code></pre>
                             <li>Edit postgresql.conf:</li>
                             <pre><code data-trim style="font-size:14px;">
@@ -515,7 +539,7 @@
                             </code></pre>
                             <li>Start the DB</li>
                             <pre><code data-trim style="font-size:14px;">
-                                /usr/pgsql-10/bin/pg_ctl -D /home/training/mydb start
+                                /usr/pgsql-11/bin/pg_ctl -D /home/training/mydb start
                             </code></pre>
                             <li>Automatically made role “training”</li>
                             <li>psql used to restore pg_dumpall or plaintext version of pg_dump</li>
@@ -541,7 +565,7 @@
                         <li>Must recreate all indexes &amp; constraints</li>
                         <li>Stop this instance and delete it</li>
                         <pre><code data-trim style="font-size:14px">
-                            /usr/pgsql-10/bin/pg_ctl stop -m fast -D /home/training/mydb
+                            /usr/pgsql-11/bin/pg_ctl stop -m fast -D /home/training/mydb
                             rm -r /home/training/mydb
                         </code></pre>
                     </ul>
@@ -589,7 +613,7 @@
                                     unix_socket_directories = '/home/training/mydb2'
                             </code></pre>
                             <pre><code data-trim>
-                                /usr/pgsql-10/bin/pg_ctl -D /home/training/mydb2 start
+                                /usr/pgsql-11/bin/pg_ctl -D /home/training/mydb2 start
 
                                 psql -h localhost -p 5888
                                 (requires hba fix)
@@ -607,7 +631,7 @@
                         <li>Less flexible restore options (all or nothing)</li>
                         <li>Stop this instance and delete it</li>
                         <pre><code data-trim>
-                            /usr/pgsql-10/bin/pg_ctl stop -m fast -D /home/training/mydb2
+                            /usr/pgsql-11/bin/pg_ctl stop -m fast -D /home/training/mydb2
                             rm -r /home/training/mydb2
                         </code></pre>
                     </ul>
@@ -644,7 +668,7 @@
                                 repo1-path=/var/lib/pgbackrest
 
                                 [main]
-                                pg1-path=/var/lib/pgsql/10/data
+                                pg1-path=/var/lib/pgsql/11/data
                                 retention-full=2
                             </code></pre>
                         </ul>
@@ -671,7 +695,7 @@
                         <li>Normally set above exactly the same on replica, but can't in VM</a>
                         <li>Reload/restart to set above options</li>
                         <pre><code data-trim>
-                            sudo systemctl reload postgresql-10
+                            sudo systemctl reload postgresql-11
                         </code></pre>
                         <li>Create &amp; check the stanza</li>
                         <pre><code data-trim>
@@ -712,21 +736,42 @@
                         <li>For training, restore to a target folder:</li>
                         <pre><code data-trim>
                             sudo su - postgres 
-                            mkdir /var/lib/pgsql/10/br_restore
-                            chmod 700 /var/lib/pgsql/10/br_restore
+                            mkdir /var/lib/pgsql/11/br_restore
+                            chmod 700 /var/lib/pgsql/11/br_restore
 
-                            pgbackrest restore --stanza=main --db-path=/var/lib/pgsql/10/br_restore
+                            pgbackrest restore --stanza=main --db-path=/var/lib/pgsql/11/br_restore
                         </code></pre>
                         <li>Change postgresql.conf port to 5911</li>
                         <pre><code data-trim>
-                           /usr/pgsql-10/bin/pg_ctl start -D /var/lib/pgsql/10/br_restore/ 
+                           /usr/pgsql-11/bin/pg_ctl start -D /var/lib/pgsql/11/br_restore/ 
                         </code></pre>
                         <pre><code data-trim>
-                           /usr/pgsql-10/bin/pg_ctl stop -m fast -D /var/lib/pgsql/10/br_restore/ 
-                           rm -r /var/lib/pgsql/10/br_restore
+                           /usr/pgsql-11/bin/pg_ctl stop -m fast -D /var/lib/pgsql/11/br_restore/ 
+                           rm -r /var/lib/pgsql/11/br_restore
                         </code></pre>
                     </ul>
 
+                </section>
+
+				<section data-background="css/theme/crunchy_white_bg.png">
+                    <h2>Failover</h2>
+                    <ul>
+                        <li>Stop the master</li>
+                        <pre><code data-trim>
+                            sudo systemctl stop postgresql-11
+                            sudo systemctl status postgresql-11
+                        </code></pre>
+                        <li>Check replica logs to see connection errors</li>
+                        <pre><code data-trim>
+                            /var/lib/pgsql/11/replica/log/...
+                        </code></pre>
+                        <li>Promote replica</li>
+                        <pre><code data-trim>
+                            /usr/pgsql-11/bin/pg_ctl promote -D /var/lib/pgsql/10/replica
+                        </code></pre>
+                        <li>Check logs</li>
+                        <li>Write to database (running on port 5444)</li>
+                    </ul>
                 </section>
 
 				<section data-background="css/theme/crunchy_white_bg.png">
@@ -743,7 +788,7 @@
                         <li>pg_upgrade</li>
                         <ul>
                             <li>In-place upgrade of data files</li>
-                            <li>Works only for 8.4.7+ (all previous versions must dump/restore)</li>
+                            <li>Works only for 8.4.7+ (all previous versions must dump/restore or do staged upgrade)</li>
                             <li>OS w/ hard link support can greatly decrease upgrade time</li>
                             <ul>
                                 <li>Ex: 700GB upgrade in under 5 minutes, but...</li>
@@ -1026,26 +1071,6 @@ from pg_locks;
 
                 <!-- VM Snapshot -->
 
-				<section data-background="css/theme/crunchy_white_bg.png">
-                    <h2>Failover</h2>
-                    <ul>
-                        <li>Stop the master</li>
-                        <pre><code data-trim>
-                            sudo systemctl stop postgresql-10
-                            sudo systemctl status postgresql-10
-                        </code></pre>
-                        <li>Check replica logs to see connection errors</li>
-                        <pre><code data-trim>
-                            /var/lib/pgsql/10/replica/log/...
-                        </code></pre>
-                        <li>Promote replica</li>
-                        <pre><code data-trim>
-                            /usr/pgsql-10/bin/pg_ctl promote -D /var/lib/pgsql/10/replica
-                        </code></pre>
-                        <li>Check logs</li>
-                        <li>Write to database (running on port 5444)</li>
-                    </ul>
-                </section>
 <!--
                 <section>
                 - Fix backrest to work on the replica
