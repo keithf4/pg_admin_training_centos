@@ -68,12 +68,14 @@
                             - Turn on bidirectional clipboard
                             - Set firefox as default browser and slides as homepage
                             - Put firefox & console icons on desktop
+                            - Set automatic login for training user
                             - Shrink VM storage size
                                 - dd if=/dev/zero of=zerofillfile bs=1M
                                 - rm zerofillfile
                                 - VBoxManage modifyhd --compact "[path_to_of_image_file].vdi"
                                 
                             -- Snapshots
+                                - Starting Snapshot
                                 - PG Packages Installed
                                 - Configured Primary DB (Before Replica)
                                 - Replica Running (before pg_dump)
@@ -184,7 +186,7 @@
                             </code></pre>
                         <li>No clusters automatically created and no initial automatic startup (Redhat policy)</li>
                         <pre><code data-trim>
-                            sudo /usr/pgsql-11/bin/postgresql-11-setup initdb
+                            sudo PGSETUP_INITDB_OPTIONS="--data-checksums" /usr/pgsql-11/bin/postgresql-11-setup initdb
                             sudo systemctl enable postgresql-11
                             sudo systemctl start postgresql-11
                             systemctl status postgresql-11
@@ -530,7 +532,7 @@
                             <pre><code data-trim style="font-size:14px;">
                                 mkdir /home/training/mydb
                                 chmod 700 /home/training/mydb
-                                /usr/pgsql-11/bin/initdb -D /home/training/mydb
+                                /usr/pgsql-11/bin/initdb --data-checksums -D /home/training/mydb
                             </code></pre>
                             <li>Edit postgresql.conf:</li>
                             <pre><code data-trim style="font-size:14px;">
@@ -666,6 +668,7 @@
                             <pre><code data-trim>
                                 [global]
                                 repo1-path=/var/lib/pgbackrest
+                                log-level-console=info
 
                                 [main]
                                 pg1-path=/var/lib/pgsql/11/data
@@ -699,9 +702,9 @@
                         </code></pre>
                         <li>Create &amp; check the stanza</li>
                         <pre><code data-trim>
-                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info stanza-create
+                            sudo -u postgres pgbackrest --stanza=main stanza-create
 
-                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info check
+                            sudo -u postgres pgbackrest --stanza=main check
                         </code></pre>
                     </ul>
                 </section>
@@ -711,15 +714,15 @@
                     <ul>
                         <li>Perform a backup</li>
                         <pre><code data-trim>
-                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info backup
+                            sudo -u postgres pgbackrest --stanza=main backup
                         </code></pre>
                         <li>By default attempts an incremental backup, but since no full exists, creates a full. Run again...</li>
                         <pre><code data-trim>
-                            sudo -u postgres pgbackrest --stanza=main --log-level-console=info backup
+                            sudo -u postgres pgbackrest --stanza=main backup
                         </code></pre>
                         <li>Designate backup type with --type option (full, incr, diff)</li>
                         <pre><code data-trim>
-                            sudo -u postgres pgbackrest --stanza=main --type=diff --log-level-console=info backup
+                            sudo -u postgres pgbackrest --stanza=main --type=diff backup
                         </code></pre>
                         <li>Check backup status</li>
                         <pre><code data-trim>
@@ -767,7 +770,7 @@
                         </code></pre>
                         <li>Promote replica</li>
                         <pre><code data-trim>
-                            /usr/pgsql-11/bin/pg_ctl promote -D /var/lib/pgsql/10/replica
+                            /usr/pgsql-11/bin/pg_ctl promote -D /var/lib/pgsql/11/replica
                         </code></pre>
                         <li>Check logs</li>
                         <li>Write to database (running on port 5444)</li>
