@@ -249,7 +249,7 @@
                         <pre><code data-trim>
                             postgres=# select pg_reload_conf();
                             OR
-                            sudo systemctl reload postgresql-10
+                            sudo systemctl reload postgresql-11
                         </code></pre>
                         <li>View current pg_hba.conf file from within database</li>
                         <pre><code data-trim>
@@ -331,24 +331,24 @@
                         <ul style="font-size:21px;line-height:28px">
                             <li>Important secondary settings review (all only require reload)</li>
                             <ul>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-MAX-WAL-SIZE" target="_blank">max_wal_size</a> = 1GB (default; hitting this forces checkpoint)
-                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-MIN-WAL-SIZE" target="_blank">min_wal_size</a> = 80MB (default; WAL kept for recycling)</li>
-                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-CHECKPOINT-TIMEOUT" target="_blank">checkpoint_timeout</a> = 5min (default; good starting point)</li>
-                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-wal.html#GUC-CHECKPOINT-COMPLETION-TARGET" target="_blank">checkpoint_completion_target</a> = 0.9</li>
-                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-FILENAME" target="_blank">log_filename</a> = 'postgresql-%Y-%m-%d.log'</li>
-                                    <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT" target="_blank">log_min_duration_statement</a> = 5000ms  (beware setting too low. can fill logs fast)</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-wal.html#GUC-MAX-WAL-SIZE" target="_blank">max_wal_size</a> = 1GB (default; hitting this forces checkpoint)
+                                    <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-wal.html#GUC-MIN-WAL-SIZE" target="_blank">min_wal_size</a> = 80MB (default; WAL kept for recycling)</li>
+                                    <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-wal.html#GUC-CHECKPOINT-TIMEOUT" target="_blank">checkpoint_timeout</a> = 5min (default; good starting point)</li>
+                                    <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-wal.html#GUC-CHECKPOINT-COMPLETION-TARGET" target="_blank">checkpoint_completion_target</a> = 0.9</li>
+                                    <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-logging.html#GUC-LOG-FILENAME" target="_blank">log_filename</a> = 'postgresql-%Y-%m-%d.log'</li>
+                                    <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT" target="_blank">log_min_duration_statement</a> = 5000ms  (beware setting too low. can fill logs fast)</li>
                                 <li>log_connections = on</li>
                                 <li>log_disconnections = on</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-LINE-PREFIX" target="_blank">log_line_prefix</a> = '%m [%r] [%p]: [l-%l] user=%u,db=%d,e=%e '</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-logging.html#GUC-LOG-LINE-PREFIX" target="_blank">log_line_prefix</a> = '%m [%r] [%p]: [l-%l] user=%u,db=%d,e=%e '</li>
                                 <ul>
                                     <li>%x &amp; %v can be good for transaction tracking</li>
                                 </ul>
                                 <li>log_temp_files = 4096 (kilobytes; good starting point = work_mem)</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-logging.html#GUC-LOG-LOCK-WAITS" target="_blank">log_lock_waits</a> = on</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD" target="_blank">autovacuum_vacuum_threshold</a> = 500  (default too aggressive)</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-THRESHOLD" target="_blank">autovacuum_analyze_threshold</a> = 500  (default too aggressive)</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR" target="_blank">autovacuum_vacuum_scale_factor</a> = 0.1  (default too mild)</li>
-                                <li><a href="https://www.postgresql.org/docs/10/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR" target="_blank">autovacuum_analyze_scale_factor</a> = 0.05  (default too mild)</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-logging.html#GUC-LOG-LOCK-WAITS" target="_blank">log_lock_waits</a> = on</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-THRESHOLD" target="_blank">autovacuum_vacuum_threshold</a> = 500  (default too aggressive)</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-THRESHOLD" target="_blank">autovacuum_analyze_threshold</a> = 500  (default too aggressive)</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-VACUUM-SCALE-FACTOR" target="_blank">autovacuum_vacuum_scale_factor</a> = 0.1  (default too mild)</li>
+                                <li><a href="https://www.postgresql.org/docs/current/static/runtime-config-autovacuum.html#GUC-AUTOVACUUM-ANALYZE-SCALE-FACTOR" target="_blank">autovacuum_analyze_scale_factor</a> = 0.05  (default too mild)</li>
                             </ul>
                             <li>Restart postgresql to put all new settings into place (as training user)</li>
                             <pre style="font-size:16px;">sudo systemctl restart postgresql-11</pre>
@@ -429,7 +429,7 @@
                         <pre><code data-trim>
                             port = 5444 
                         </code></pre>
-                        <li>Edit replica <a href="https://www.postgresql.org/docs/10/static/recovery-config.html" target="_blank">recovery.conf</a></li>
+                        <li>Edit replica <a href="https://www.postgresql.org/docs/current/static/recovery-config.html" target="_blank">recovery.conf</a></li>
                         <pre><code data-trim>
                             standby_mode = 'on'
                             primary_conninfo = 'host=127.0.0.1 port=5432 user=replication password=password'
@@ -451,7 +451,7 @@
                         <li><a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/chap-Managing_Services_with_systemd#tabl-Managing_Services_with_systemd-Introduction-Units-Locations" target="_blank">See systemd service file locations</a></li>
                         <li>Edit config file to set replica data directory (as root):</li>
                         <pre><code data-trim>
-                            Environment=PGDATA=/var/lib/pgsql/10/replica/
+                            Environment=PGDATA=/var/lib/pgsql/11/replica/
                         </code></pre>
                         <li>Register service, start up replica &amp; and check service status</li>
                         <pre><code data-trim>
@@ -804,7 +804,7 @@
                         <li>Logical</li>
                         <ul>
                             <li>More setup and some limitations, but greatly reduced or even zero downtime upgrade</li>
-                            <li><a href="https://www.postgresql.org/docs/10/static/logical-replication.html" target="_blank">native</a>, <a href="https://www.2ndquadrant.com/en/resources/pglogical/" target="_blank">pglogical</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>, <a href="https://bucardo.org/Bucardo/" target="_blank">bucardo</a>, <a href="http://www.slony.info/" target="_blank">slony</a>, etc</li>
+                            <li><a href="https://www.postgresql.org/docs/current/static/logical-replication.html" target="_blank">native</a>, <a href="https://www.2ndquadrant.com/en/resources/pglogical/" target="_blank">pglogical</a>, <a href="https://github.com/omniti-labs/mimeo" target="_blank">mimeo</a>, <a href="https://bucardo.org/Bucardo/" target="_blank">bucardo</a>, <a href="http://www.slony.info/" target="_blank">slony</a>, etc</li>
                         </ul>
                     </ul>
                 </section>
@@ -886,7 +886,7 @@
                         <pre><code data-trim>
                             local    all    monitoring       trust 
 
-                            sudo systemctl reload postgresql-10
+                            sudo systemctl reload postgresql-11
                         </code></pre>
                         <pre><code data-trim>
                             select max_connections
