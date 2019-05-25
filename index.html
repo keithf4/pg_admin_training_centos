@@ -752,13 +752,17 @@
                         <li>In disaster recovery, this is normal. --delta option can even speed it up greatly if original data dir is still there</li>
                         <li>For training, restore to a target folder:</li>
                         <pre><code data-trim>
-                            sudo su - postgres 
+                            sudo -iu postgres 
                             mkdir /var/lib/pgsql/11/br_restore
                             chmod 700 /var/lib/pgsql/11/br_restore
 
                             pgbackrest restore --stanza=main --db-path=/var/lib/pgsql/11/br_restore
                         </code></pre>
                         <li>Change postgresql.conf port to 5911</li>
+                        <li style="color:red"><b><i>TURN OFF ARCHIVE COMMAND</i></b></li>
+                            <ul>
+                                <li>Set back to <b><i>/bin/true</i></b> or set mode to <b><i>off</i></b></li>
+                            </ul>
                         <pre><code data-trim>
                            /usr/pgsql-11/bin/pg_ctl start -D /var/lib/pgsql/11/br_restore/ 
                         </code></pre>
