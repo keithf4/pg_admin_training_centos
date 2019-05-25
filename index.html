@@ -190,8 +190,8 @@
                             sudo systemctl enable postgresql-11
                             sudo systemctl start postgresql-11
                             systemctl status postgresql-11
+                            ...
                         </code></pre>
-                        <li>[...]</li>
                     </ul>
 
                 </section>
@@ -283,6 +283,7 @@
                             <pre><code data-trim>
                                 training=# \password training
                                 training=# \password replication
+                                ...
                             </code></pre>
                         </ul>
                     </ul>
@@ -416,6 +417,7 @@
                             pg_basebackup -h 127.0.0.1 -U replication -D /var/lib/pgsql/11/replica -R -Xs -P -S training_replica -v
 
                             training=# SELECT * FROM pg_replication_slots;
+                            ...
                         </code></pre>
                         </ul>
                     </ul>
@@ -436,6 +438,7 @@
                             primary_conninfo = 'host=127.0.0.1 port=5432 user=replication password=password'
                             primary_slot_name = 'training_replica'
                             recovery_target_timeline='latest'
+                            ...
                         </code></pre>
 
                     </ul>
@@ -460,6 +463,7 @@
                             sudo systemctl enable postgresql-11-replica
                             sudo systemctl start postgresql-11-replica
                             sudo systemctl status postgresql-11-replica
+                            ...
                         </code></pre>
                     </ul>
                 </section>
@@ -490,6 +494,7 @@
                             psql -p 5444
 
                             training=# SELECT pg_is_in_recovery();
+                            ...
                         </code></pre>
                     </ul>
                 </section>
@@ -520,6 +525,7 @@
                                 <li><b><i>--section</i></b> option can break up dump into stages</li>
                                 <pre><code data-trim>
                                     pg_dump -Fc training -f /home/training/training.pgr -v
+                                    ...
                                 </code></pre>
                             </ul>
                         </ul>
@@ -557,6 +563,7 @@
                                 psql -h localhost -p 5888 postgres
                                 postgres=# create database new_training;
                                 pg_restore -h localhost -p 5888 -d new_training -v /home/training/training.pgr
+                                ...
                             </code></pre>
                         </ul>
                 </section>
@@ -570,6 +577,7 @@
                         <pre><code data-trim style="font-size:14px">
                             /usr/pgsql-11/bin/pg_ctl stop -m fast -D /home/training/mydb
                             rm -r /home/training/mydb
+                            ...
                         </code></pre>
                     </ul>
 
@@ -622,6 +630,7 @@
                                 (requires hba fix)
 
                                 psql -h /home/training/mydb2/ -p 5888
+                                ...
                             </code></pre>
                         </ul>
                     </div>
@@ -636,6 +645,7 @@
                         <pre><code data-trim>
                             /usr/pgsql-11/bin/pg_ctl stop -m fast -D /home/training/mydb2
                             rm -r /home/training/mydb2
+                            ...
                         </code></pre>
                     </ul>
 
@@ -682,6 +692,7 @@
                             sudo chmod 750 /var/lib/pgbackrest/
                             sudo chown postgres:postgres /var/lib/pgbackrest
                             sudo chown postgres:postgres /var/log/pgbackrest
+                            ...
                         </code></pre>
                     </ul>
                 </section>
@@ -706,6 +717,7 @@
                             sudo -u postgres pgbackrest --stanza=main stanza-create
 
                             sudo -u postgres pgbackrest --stanza=main check
+                            ...
                         </code></pre>
                     </ul>
                 </section>
@@ -728,6 +740,7 @@
                         <li>Check backup status</li>
                         <pre><code data-trim>
                             sudo -u postgres pgbackrest info
+                            ...
                         </code></pre>
                     </ul>
                 </section>
@@ -752,6 +765,7 @@
                         <pre><code data-trim>
                            /usr/pgsql-11/bin/pg_ctl stop -m fast -D /var/lib/pgsql/11/br_restore/ 
                            rm -r /var/lib/pgsql/11/br_restore
+                           ...
                         </code></pre>
                     </ul>
 
